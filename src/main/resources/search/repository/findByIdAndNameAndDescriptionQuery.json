@@ -1,0 +1,39 @@
+{
+  "bool": {
+    "should": [
+      {
+        "bool": {
+          "must": [
+            {
+              "regexp": {
+                "id": ".*?0.*"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "bool": {
+          "must": [
+            {
+              "regexp": {
+                "name": ".*?0.*"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "bool": {
+          "must": [
+            {
+              "regexp": {
+                "description": ".*?0.*"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
