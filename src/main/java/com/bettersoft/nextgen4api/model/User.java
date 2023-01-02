@@ -4,11 +4,14 @@ import com.bettersoft.nextgen4api.rest.payload.response.UserResponse;
 import com.bettersoft.nextgen4api.search.model.GenericSearch;
 import com.bettersoft.nextgen4api.rest.payload.response.generic.GenericResponse;
 import com.bettersoft.nextgen4api.search.model.impl.UserSearch;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Cascade;
 import org.modelmapper.ModelMapper;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -21,6 +24,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -50,7 +54,7 @@ public class User extends BaseEntity<UserSearch, UserResponse> {
 	@Transient
 	private Set<UserRole> roles = new HashSet<>();
 
-	@ManyToMany(fetch = FetchType.LAZY)
+	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinTable(	name = "user_routes",
 			joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "route_id", referencedColumnName = "id"))
@@ -75,5 +79,12 @@ public class User extends BaseEntity<UserSearch, UserResponse> {
 	@Override
 	public UserSearch toSearchModel(ModelMapper mapper) {
 		return mapper.map(this, UserSearch.class);
+	}
+
+	public void addRoute(Rota router) {
+		if(Objects.isNull(rotas)) {
+			rotas = new HashSet<>();
+		}
+		rotas.add(router);
 	}
 }

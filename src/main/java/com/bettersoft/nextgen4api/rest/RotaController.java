@@ -1,8 +1,13 @@
 package com.bettersoft.nextgen4api.rest;
 
 import com.bettersoft.nextgen4api.config.Const;
+import com.bettersoft.nextgen4api.config.exception.AppErrors;
+import com.bettersoft.nextgen4api.config.exception.BusinessException;
 import com.bettersoft.nextgen4api.facade.IAuthenticationFacade;
 import com.bettersoft.nextgen4api.model.Rota;
+import com.bettersoft.nextgen4api.model.enums.Status;
+import com.bettersoft.nextgen4api.repository.UserRepository;
+import com.bettersoft.nextgen4api.rest.payload.request.RotaAuthorizeUserRequest;
 import com.bettersoft.nextgen4api.search.model.impl.RotaSearch;
 import com.bettersoft.nextgen4api.repository.RotasRepository;
 import com.bettersoft.nextgen4api.search.repository.impl.RotaSearchRepository;
@@ -19,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,8 +36,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 
 @SecurityRequirement(name = "nextgenapi")
@@ -41,9 +50,13 @@ import java.util.Objects;
 public class RotaController extends GenericController<RotaSearch, Rota, RotaRequest, RotaResponse> {
 
     private final IAuthenticationFacade authenticationFacade;
+    private final RotasRepository repository;
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
     public RotaController(
             RotasRepository repository,
+            UserRepository userRepository,
             RotaSearchRepository searchRepository,
             IAuthenticationFacade authenticationFacade,
             ModelMapper modelMapper,
@@ -55,7 +68,10 @@ public class RotaController extends GenericController<RotaSearch, Rota, RotaRequ
                 modelMapper,
                 authenticationFacade,
                 service);
+        this.repository = repository;
+        this.userRepository = userRepository;
         this.authenticationFacade = authenticationFacade;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping("/my-routes")
@@ -70,6 +86,16 @@ public class RotaController extends GenericController<RotaSearch, Rota, RotaRequ
     @GetMapping("")
     public ResponseEntity<Page<GenericResponse>> getPage(RotaFilter filter, Pageable pageable){
         return super.getPageBySearch(Objects.nonNull(filter) ? filter.getFilter() : "", pageable);
+    }
+
+    @PreAuthorize(Const.GRANT_ADMIN)
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/actives")
+    public List<RotaResponse> getActives(){
+        var routes = repository.findAllByStatus(Status.ACTIVE);
+        return routes.stream()
+                .filter(route -> Status.ACTIVE.equals(route.getStatus()))
+                .map(route ->  route.toResponse(modelMapper)).toList();
     }
 
     @Override
@@ -94,6 +120,28 @@ public class RotaController extends GenericController<RotaSearch, Rota, RotaRequ
     @PostMapping("")
     public ResponseEntity<RotaResponse> create(@RequestBody RotaRequest request){
         return super.create(request);
+    }
+
+    @PreAuthorize(Const.GRANT_ADMIN)
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/authorize")
+    @Transactional
+    public ResponseEntity authorizeUser(@RequestBody RotaAuthorizeUserRequest request){
+
+        var user = userRepository.findByUuid(request.getUser())
+                .orElseThrow(() -> new BusinessException(AppErrors.notFound("User", request.getUser())));
+        repository.deleteRotasUserByUserId(user.getId());
+
+        user.setRotas(new HashSet<>());
+        Optional.ofNullable(request.getRoutes()).orElse(new ArrayList<>())
+                .forEach(route -> {
+                    var router = repository.findByUuid(route)
+                            .orElseThrow(() -> new BusinessException(AppErrors.notFound("Rota", request.getUser())));
+                    user.addRoute(router);
+                });
+
+        userRepository.save(user);
+        return ResponseEntity.ok(user.toResponse(modelMapper));
     }
 
     @PreAuthorize(Const.GRANT_ADMIN)

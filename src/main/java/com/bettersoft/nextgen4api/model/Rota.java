@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(of = {"name"}, callSuper=false)
 @Table(	name = "rotas",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "name"),

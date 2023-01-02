@@ -6,12 +6,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
 
+import java.util.Set;
+
 @Data
 @NoArgsConstructor
 public class UserResponse  extends GenericResponse<User, UserResponse> {
 
     private String username;
     private String email;
+
+    private Set<RotaResponse> rotas;
 
     @Override
     public UserResponse toResponse(ModelMapper modelMapper, User entity) {
