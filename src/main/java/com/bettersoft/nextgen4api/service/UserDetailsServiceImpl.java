@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,6 +38,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				.orElse(new ArrayList<>())
 				.stream()
 				.map(UserRole::getRole).collect(Collectors.toSet());
+
+		// atualizacao para prevenir recursividade
+		Optional.ofNullable(user.getRotas()).orElse(new HashSet<>())
+				.forEach(rota -> {
+					rota.setCreatedBy(null);
+					rota.setUpdatedBy(null);
+					rota.setDeletedBy(null);
+				});
+
 		return UserDetailsImpl.build(user, roles);
 	}
 

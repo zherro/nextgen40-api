@@ -25,6 +25,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 @Getter
@@ -73,6 +74,14 @@ public class User extends BaseEntity<UserSearch, UserResponse> {
 
 	@Override
 	public UserResponse toResponse(ModelMapper mapper) {
+
+		// atualizacao para prevenir recursividade
+		Optional.ofNullable(this.rotas).orElse(new HashSet<>())
+				.forEach(rota -> {
+					rota.setCreatedBy(null);
+					rota.setUpdatedBy(null);
+					rota.setDeletedBy(null);
+				});
 		return mapper.map(this, UserResponse.class);
 	}
 
