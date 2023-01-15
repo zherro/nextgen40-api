@@ -5,7 +5,7 @@ import lombok.Setter;
 import java.util.Objects;
 
 @Setter
-public abstract class GenericFilter {
+public class GenericFilter {
 
     protected String filter;
 
