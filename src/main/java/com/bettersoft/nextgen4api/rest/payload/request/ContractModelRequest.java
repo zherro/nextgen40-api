@@ -1,7 +1,9 @@
 package com.bettersoft.nextgen4api.rest.payload.request;
 
 import com.bettersoft.nextgen4api.model.ContractModel;
+import com.bettersoft.nextgen4api.model.enums.SimNaoEnum;
 import com.bettersoft.nextgen4api.model.enums.Status;
+import com.bettersoft.nextgen4api.model.enums.TipoContratoEnum;
 import com.bettersoft.nextgen4api.rest.payload.request.generic.GenericRequest;
 import lombok.Data;
 import org.modelmapper.ModelMapper;
@@ -26,6 +28,10 @@ public class ContractModelRequest implements GenericRequest<ContractModelRequest
 
     @NotNull
     private Status status;
+
+    private TipoContratoEnum tipoContrato;
+
+    private SimNaoEnum onWeekend;
 
 
     @Override

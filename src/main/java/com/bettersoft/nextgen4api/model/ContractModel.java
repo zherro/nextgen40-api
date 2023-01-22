@@ -1,9 +1,13 @@
 package com.bettersoft.nextgen4api.model;
 
+import com.bettersoft.nextgen4api.model.enums.SimNaoEnum;
+import com.bettersoft.nextgen4api.model.enums.TipoContratoEnum;
 import com.bettersoft.nextgen4api.rest.payload.response.AccountResponse;
 import com.bettersoft.nextgen4api.rest.payload.response.ContractModelResponse;
 import com.bettersoft.nextgen4api.search.model.impl.AccountSearch;
 import com.bettersoft.nextgen4api.search.model.impl.ContractModelSearch;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +36,12 @@ public class ContractModel extends BaseEntity<ContractModelSearch, ContractModel
     private Long quotePrice;
 
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    private TipoContratoEnum tipoContrato;
+
+    @Enumerated(EnumType.STRING)
+    private SimNaoEnum onWeekend;
 
     @Override
     public String entityName() {
